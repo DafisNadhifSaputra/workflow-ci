@@ -4,6 +4,7 @@ Proyek Akhir: Membangun Sistem Machine Learning
 Dicoding Indonesia
 
 Author: Dafis Nadhif Saputra
+Version: 1.1 - 2024-12-18
 """
 
 import os
