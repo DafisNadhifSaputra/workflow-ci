@@ -1,0 +1,32 @@
+name: SMSML_Training
+
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      data_path: {type: string, default: "data/breast_cancer_data.csv"}
+      target_column: {type: string, default: "target"}
+      n_estimators: {type: int, default: 100}
+      max_depth: {type: int, default: 10}
+      test_size: {type: float, default: 0.2}
+    command: |
+      python modelling.py
+
+  preprocess:
+    parameters:
+      input_path: {type: string, default: "data/breast_cancer_data.csv"}
+      output_path: {type: string, default: "data/preprocessed_data.csv"}
+      target_column: {type: string, default: "target"}
+    command: |
+      python Dafis-Nadhif-Saputra.py \
+        --input {input_path} \
+        --output {output_path} \
+        --target {target_column}
+
+  tune:
+    parameters:
+      data_path: {type: string, default: "data/breast_cancer_data.csv"}
+      target_column: {type: string, default: "target"}
+    command: |
+      python modelling_tuning.py
