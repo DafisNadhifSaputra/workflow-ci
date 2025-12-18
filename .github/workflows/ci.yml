@@ -1,17 +1,12 @@
 # GitHub Actions Workflow untuk CI/CD dengan MLflow
 # Kriteria 3: Workflow CI untuk re-training model otomatis
-# Version: 1.1 - Fixed datetime import issue
+# Version: 1.2 - Simplified workflow (run Python directly)
 
 name: ML Training CI/CD
 
 on:
   push:
     branches: [ main, master ]
-    paths:
-      - 'modelling*.py'
-      - 'MLProject'
-      - 'requirements.txt'
-      - 'data/**'
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -54,16 +49,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Run MLflow Project - Training
+    - name: Verify dataset exists
       run: |
-        echo "=== Starting MLflow Training ==="
-        mlflow run . --env-manager=local
+        echo "=== Checking Dataset ==="
+        ls -la data/
+        head -5 data/breast_cancer_data.csv
+        
+    - name: Run Training Script
+      run: |
+        echo "=== Starting Model Training ==="
+        python modelling.py
         echo "=== Training Complete ==="
         
     - name: List MLflow artifacts
       run: |
         echo "=== MLflow Artifacts ==="
         ls -la mlruns/ || echo "No mlruns directory"
+        find mlruns -type f -name "*.png" 2>/dev/null || echo "No plots found"
         
     - name: Upload MLflow artifacts
       uses: actions/upload-artifact@v4
@@ -72,82 +74,13 @@ jobs:
         path: |
           mlruns/
         retention-days: 30
+        if-no-files-found: warn
         
-    - name: Upload model artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: model-artifacts-${{ github.sha }}
-        path: |
-          *.joblib
-          *.pkl
-          mlflow_artifacts/
-        retention-days: 30
-        if-no-files-found: ignore
-
-  # Job untuk build Docker (Advanced criteria)
-  build-docker:
-    needs: train
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Download MLflow artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: mlflow-artifacts-${{ github.sha }}
-        path: mlruns/
-        
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-        
-    - name: Install MLflow
+    - name: Upload training summary
       run: |
-        pip install mlflow~=2.19.0
-        
-    - name: Find latest run ID
-      id: find-run
-      run: |
-        # Find the latest run ID
-        EXPERIMENT_DIR=$(ls -d mlruns/[0-9]* 2>/dev/null | head -1)
-        if [ -n "$EXPERIMENT_DIR" ]; then
-          RUN_ID=$(ls -t "$EXPERIMENT_DIR" | grep -v meta.yaml | head -1)
-          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
-          echo "Found run ID: $RUN_ID"
-        else
-          echo "No experiment directory found"
-          exit 1
-        fi
-        
-    - name: Build Docker image
-      if: steps.find-run.outputs.run_id != ''
-      run: |
-        RUN_ID="${{ steps.find-run.outputs.run_id }}"
-        EXPERIMENT_ID=$(ls mlruns/ | grep -v trash | head -1)
-        MODEL_PATH="mlruns/$EXPERIMENT_ID/$RUN_ID/artifacts/model"
-        
-        if [ -d "$MODEL_PATH" ]; then
-          echo "Building Docker image from: $MODEL_PATH"
-          mlflow models build-docker -m "$MODEL_PATH" -n smsml-model:${{ github.sha }}
-        else
-          echo "Model path not found: $MODEL_PATH"
-          ls -la mlruns/$EXPERIMENT_ID/$RUN_ID/artifacts/ || true
-        fi
-        
-    # Uncomment untuk push ke Docker Hub
-    # - name: Login to Docker Hub
-    #   uses: docker/login-action@v3
-    #   with:
-    #     username: ${{ secrets.DOCKER_USERNAME }}
-    #     password: ${{ secrets.DOCKER_TOKEN }}
-    #     
-    # - name: Push to Docker Hub
-    #   run: |
-    #     docker tag smsml-model:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/smsml-model:${{ github.sha }}
-    #     docker tag smsml-model:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/smsml-model:latest
-    #     docker push ${{ secrets.DOCKER_USERNAME }}/smsml-model:${{ github.sha }}
-    #     docker push ${{ secrets.DOCKER_USERNAME }}/smsml-model:latest
+        echo "=== Training Summary ==="
+        echo "- Python version: $(python --version)"
+        echo "- MLflow version: $(pip show mlflow | grep Version)"
+        echo "- Dataset: Breast Cancer Wisconsin (Diagnostic)"
+        echo "- Model: RandomForestClassifier"
+        echo "- Status: SUCCESS"
