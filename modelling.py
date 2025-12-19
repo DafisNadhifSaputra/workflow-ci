@@ -4,7 +4,7 @@ Author: Dafis Nadhif Saputra
 """
 
 import matplotlib
-matplotlib.use('Agg')  # Fix CI headless environment error
+matplotlib.use('Agg')  # Use Agg backend for headless environments
 
 import os
 import pandas as pd
