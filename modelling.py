@@ -3,6 +3,9 @@ Model Training dengan MLflow Autolog
 Author: Dafis Nadhif Saputra
 """
 
+import matplotlib
+matplotlib.use('Agg')  # Fix CI headless environment error
+
 import os
 import pandas as pd
 import numpy as np
