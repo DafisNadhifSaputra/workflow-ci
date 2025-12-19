@@ -37,32 +37,33 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r MLProject/requirements.txt
         
     - name: Verify dataset exists
       run: |
         echo "=== Checking Dataset ==="
-        ls -la data/
+        ls -la MLProject/data/
         echo "=== Preprocessed data sample ==="
-        head -3 data/breast_cancer_preprocessed.csv
+        head -3 MLProject/data/breast_cancer_preprocessed.csv
         
     - name: Run MLflow Project
       run: |
         echo "=== Starting MLflow Project ==="
-        mlflow run . --env-manager=local
+        # Run the project located in the MLProject folder
+        mlflow run MLProject --env-manager=local
         echo "=== MLflow Project Complete ==="
         
     - name: List MLflow artifacts
       run: |
         echo "=== MLflow Artifacts ==="
-        ls -la mlruns/ || echo "No mlruns directory"
+        ls -la MLProject/mlruns/ || echo "No mlruns directory in MLProject/"
         
     - name: Upload MLflow artifacts
       uses: actions/upload-artifact@v4
       with:
         name: mlflow-artifacts-${{ github.sha }}
         path: |
-          mlruns/
+          MLProject/mlruns/
         retention-days: 30
         if-no-files-found: warn
         
@@ -73,5 +74,5 @@ jobs:
         echo "- MLflow version: $(pip show mlflow | grep Version)"
         echo "- Dataset: Breast Cancer Wisconsin (Preprocessed)"
         echo "- Model: RandomForestClassifier"
-        echo "- Command: mlflow run . --env-manager=local"
+        echo "- Command: mlflow run MLProject --env-manager=local"
         echo "- Status: SUCCESS"
