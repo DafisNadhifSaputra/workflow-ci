@@ -43,19 +43,20 @@ jobs:
       run: |
         echo "=== Checking Dataset ==="
         ls -la data/
-        head -5 data/breast_cancer_preprocessed.csv
+        echo "=== Preprocessed data sample ==="
+        head -3 data/breast_cancer_preprocessed.csv
         
-    - name: Run MLflow Project
+    - name: Run MLflow Training
       run: |
         echo "=== Starting MLflow Training ==="
-        mlflow run . --env-manager=local
+        export MPLBACKEND=Agg
+        python modelling.py
         echo "=== Training Complete ==="
         
     - name: List MLflow artifacts
       run: |
         echo "=== MLflow Artifacts ==="
         ls -la mlruns/ || echo "No mlruns directory"
-        find mlruns -type f -name "*.png" 2>/dev/null || echo "No plots found"
         
     - name: Upload MLflow artifacts
       uses: actions/upload-artifact@v4
@@ -71,6 +72,6 @@ jobs:
         echo "=== Training Summary ==="
         echo "- Python version: $(python --version)"
         echo "- MLflow version: $(pip show mlflow | grep Version)"
-        echo "- Dataset: Breast Cancer Wisconsin (Diagnostic)"
+        echo "- Dataset: Breast Cancer Wisconsin (Preprocessed)"
         echo "- Model: RandomForestClassifier"
         echo "- Status: SUCCESS"
