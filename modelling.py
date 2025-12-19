@@ -110,7 +110,7 @@ def main():
     print("Model Training - Breast Cancer Classification")
     print("=" * 50)
     
-    DATA_PATH = "data/breast_cancer_data.csv"
+    DATA_PATH = "data/breast_cancer_preprocessed.csv"
     TARGET_COLUMN = "target"
     EXPERIMENT_NAME = "SMSML_Dafis_Nadhif_Saputra"
     
