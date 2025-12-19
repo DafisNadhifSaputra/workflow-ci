@@ -1,5 +1,5 @@
 # GitHub Actions Workflow untuk CI/CD dengan MLflow
-# Kriteria 3: Workflow CI menggunakan mlflow run
+# Kriteria 3: Workflow CI HARUS menggunakan mlflow run
 
 name: ML Training CI/CD
 
@@ -46,12 +46,11 @@ jobs:
         echo "=== Preprocessed data sample ==="
         head -3 data/breast_cancer_preprocessed.csv
         
-    - name: Run MLflow Training
+    - name: Run MLflow Project
       run: |
-        echo "=== Starting MLflow Training ==="
-        export MPLBACKEND=Agg
-        python modelling.py
-        echo "=== Training Complete ==="
+        echo "=== Starting MLflow Project ==="
+        mlflow run . --env-manager=local
+        echo "=== MLflow Project Complete ==="
         
     - name: List MLflow artifacts
       run: |
@@ -74,4 +73,5 @@ jobs:
         echo "- MLflow version: $(pip show mlflow | grep Version)"
         echo "- Dataset: Breast Cancer Wisconsin (Preprocessed)"
         echo "- Model: RandomForestClassifier"
+        echo "- Command: mlflow run . --env-manager=local"
         echo "- Status: SUCCESS"
