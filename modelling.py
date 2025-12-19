@@ -39,25 +39,33 @@ def prepare_data(df, target_column, test_size=0.2, random_state=42):
 
 def train_model(X_train, X_test, y_train, y_test, experiment_name, model_params):
     mlflow.set_experiment(experiment_name)
+    
+    
     mlflow.autolog()
     
-    run_name = f"RF_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    print("Starting training...")
     
-    with mlflow.start_run(run_name=run_name) as run:
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
-        
-        model = RandomForestClassifier(**model_params)
-        model.fit(X_train_scaled, y_train)
-        
-        y_pred = model.predict(X_test_scaled)
-        accuracy = accuracy_score(y_test, y_pred)
-        print(f"Accuracy: {accuracy:.4f}")
-        
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    model = RandomForestClassifier(**model_params)
+    model.fit(X_train_scaled, y_train)
+    
+    y_pred = model.predict(X_test_scaled)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Accuracy: {accuracy:.4f}")
+    
+    # Get the run ID from the active run
+    run = mlflow.active_run()
+    if run:
         run_id = run.info.run_id
-    
-    mlflow.autolog(disable=True)
+        print(f"Active Run ID: {run_id}")
+    else:
+        # Fallback if somehow no run is active (should not happen with autolog)
+        run_id = "unknown"
+        print("Warning: No active MLflow run detected.")
+
     return model, run_id
 
 
