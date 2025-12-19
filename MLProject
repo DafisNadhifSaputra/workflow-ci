@@ -1,7 +1,5 @@
 name: SMSML_Breast_Cancer_Training
 
-python_env: python_env.yaml
-
 entry_points:
   main:
     parameters:
