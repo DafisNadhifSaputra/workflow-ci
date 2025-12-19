@@ -13,6 +13,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 import mlflow
 from datetime import datetime
 import joblib
+import matplotlib
+matplotlib.use('Agg')  # Headless backend for CI
 import matplotlib.pyplot as plt
 import seaborn as sns
 
