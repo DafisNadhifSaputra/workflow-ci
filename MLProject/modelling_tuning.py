@@ -254,19 +254,7 @@ def train_with_manual_logging(X_train, X_test, y_train, y_test,
                               feature_names, experiment_name,
                               model_type='random_forest',
                               hyperparameter_tuning=True):
-    """
-    Training model dengan manual logging ke MLflow.
-    
-    Args:
-        X_train, X_test, y_train, y_test: Data training dan testing
-        feature_names: List nama fitur
-        experiment_name: Nama experiment
-        model_type: Jenis model ('random_forest', 'gradient_boosting', 'logistic_regression')
-        hyperparameter_tuning: Apakah melakukan hyperparameter tuning
-    
-    Returns:
-        best_model, run_id
-    """
+    """Training model dengan manual logging ke MLflow."""
     logger = MLflowManualLogger(experiment_name)
     artifacts_dir = logger.artifacts_dir
     
@@ -408,28 +396,30 @@ def main():
     print("=" * 70)
     
     # Konfigurasi
-    DATA_PATH = "your_preprocessed_data.csv"
+    # Konfigurasi
+    DATA_PATH = "data/breast_cancer_preprocessed.csv"
     TARGET_COLUMN = "target"
     EXPERIMENT_NAME = "SMSML_Dafis_Nadhif_Saputra_Manual"
     
     # Untuk lokal tracking
     mlflow.set_tracking_uri("mlruns")
     
-    # Contoh dengan data dummy
-    print("\n[INFO] Menggunakan data dummy untuk demonstrasi...")
-    np.random.seed(42)
-    n_samples = 1000
-    n_features = 10
-    
-    # Generate more realistic dummy data
-    X = np.random.randn(n_samples, n_features)
-    weights = np.random.randn(n_features)
-    y = (X @ weights + np.random.randn(n_samples) * 0.5) > 0
-    y = y.astype(int)
-    
-    feature_names = [f'feature_{i}' for i in range(n_features)]
-    df = pd.DataFrame(X, columns=feature_names)
-    df['target'] = y
+    # Load data
+    if os.path.exists(DATA_PATH):
+        df = load_preprocessed_data(DATA_PATH)
+        feature_names = [col for col in df.columns if col != TARGET_COLUMN]
+    else:
+        # Fallback to dummy data if file not found (for demonstration only)
+        print(f"[WARNING] File {DATA_PATH} not found. Using dummy data for demo.")
+        np.random.seed(42)
+        n_samples = 1000
+        n_features = 10
+        X = np.random.randn(n_samples, n_features)
+        y = (X @ np.random.randn(n_features) + np.random.randn(n_samples) * 0.5) > 0
+        y = y.astype(int)
+        feature_names = [f'feature_{i}' for i in range(n_features)]
+        df = pd.DataFrame(X, columns=feature_names)
+        df['target'] = y
     
     # Preprocessing
     X_train, X_test, y_train, y_test, scaler, label_encoder = preprocess_for_training(
